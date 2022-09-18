@@ -15,3 +15,5 @@ Its main task is to communicate between the graphical representation of the game
 The game itself can be simulated without its graphical representation.
 The Stats class deals with counting and storing simple statistics about our game. 
 It is dependent on the GameOfLife class.
+
+To run this game download all the files to one folder and run GOA, then follow the instructions. 
