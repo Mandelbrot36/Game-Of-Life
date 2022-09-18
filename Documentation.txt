@@ -1,0 +1,217 @@
+############################## GAME OF LIFE ############################## 
+
+
+### LISTA KLAS ###:
+
+1. Cell
+2. Space
+3. GameMaster
+4. GOA
+5. GOA_Stats
+
+
+### OPIS ARCHITEKTURY SYSTEMU ###
+
+## Czym jest Gra w Życie?
+
+Projekt jest implementacją Gry w Życie Johna Conwaya. 
+Czyli jednego z pierwszych przykładów automatu komórkowego.
+Gra toczy się w założeniach na nieskończonej, 
+w mojej implementacji skończonej płaszczyźnie (edytowalnego rozmiaru), podzielonej na komórki.
+Każda komórka ma 8 sąsiadów, czyli komórki przylegające bokami i rogami. 
+Każda komórka może być martwa lub żywa.
+Stany komórek zmieniają się w dyskretnych krokach, w tym samym momencie, 
+w zależności od liczby żywych komórek w sąsiedztwie. 
+Warunki co do liczby żywych komórek są wybieralne przez użytkownika.
+
+Reguły zmiany stanów poszczególnej komórki (w oryginalnej wersji):
+
+1. Żywa komórka będzie w następnej rundzie żywa, jeżeli ma 2 lub 3 żywe komórki w swoim sąsiedztwie.
+2. Martwa komórka ożyje w następnej rundzie, jeżeli ma dokładnie 3 żywe komórki w swoim sąsiedztwie.
+
+
+## Zależności pomiędzy klasami
+
+Podstawową klasą jest klasa Cell reprezentująca poszczególną komórkę.
+Klasa Space reprezentuje naszą przestrzeń komórek, które są silnymi elementami składowymi klasy Space.
+Klasa GameMaster zajmuje się  "fizyką" gry. Jej częściowym elementem składowym jest przestrzeń, czyli klasa Space.
+Klasa ta zajmuje się sprawdzaniem warunków co do przeżywalności / powstawania komórek.
+Graficzną reprezentacją zajmuje się klasa GameOfLife.
+Jej silnymi elementami składowymi jest GameMaster i Space.
+Głównym jej zadaniem jest komunikacja pomiędzy graficznym przedstawieniem planszy, a jej wewnętrzną warstwą.
+Sama gra może zostać zasymulowana bez jej graficznego przedstawienia.
+Klasa Stats zajmuje się zliczaniem i zapamiętywaniem prostych statystyk co do naszej gry. 
+Jest ona zależna od klasy GameOfLife.
+
+
+### OPIS POSZCZEGÓLNYCH KLAS ###
+
+## CELL
+	
+	# Brak argumentów
+
+	# Atrybuty: 
+
+		1. Alive: (wartość logiczna)
+
+	# Metody:
+
+		1. change_state()
+
+Klasa której instancje reprezentują pojedyncze komórki. Każda komórka pamięta wartość TRUE lub FALSE,
+w zależności czy jest odpowiednio żywa lub nie. 
+Metoda change_state() zmienia tą wartość w zależności od potrzeby.
+
+## SPACE
+
+	# Argumenty:
+		1. j: (int) 
+		2. k: (int)
+
+	# Atrybuty:
+		1. x = j
+		2. y = k
+		3. grid = (List)
+
+	# Metody:
+		1. make_grid()
+		2. count_alive()
+		3. reset_grid()
+		4. roll_alive(n)
+
+Klasa reprezentująca płaszczyzne komórek. Za argumenty przyjmuje wartości j, czyli liczbę wierszy i k, liczbę kolumn.
+Następnie zapamiętuje te wartości w atrybutach x i y. 
+Atrybut grid przechowuje listę zagnieżdżoną faktycznych komórek, instancji klasy Cell. 
+Metoda make_grid() tworzy taką listę i zapamiętują ją w grid, jest ona wywoływana jeszcze w inicjalizatorze.
+Metoda count_alive() zlicza aktualnie żywe komórki na płaszczyźnie.
+Metoda reset_grid() czyści listę w atrybucie grid i tworzy ją na nowo.
+Metoda roll_alive(n) przyjmuje wartość naturalną n i losuje n żywych komórek na płaszczyźnie, na początku ją resetując.
+
+## GAMEMASTER
+
+	# Argumenty:
+		1. space: (Space)
+		2. x: (list)
+		3. y: (list)
+	
+	# Atrybuty:
+		1. needed_to_keep_alive = x
+		2. needed_to_born = y
+		3. space = space
+
+	# Metody:
+		1. check_neighbours(x_cord, y_cord)
+		2. check()
+		3. change_space_state()
+
+Klasa zajmująca się sprawdzaniem warunków rodzenia się i umierania komórek oraz zmiany stanu,
+aktualizowania się w kolejnych krokach płaszczyzny Space.
+Za argumenty przyjmuje instancje klasy Space.
+Listę x zawierającą wartości (od 1 do 8), czyli liczbę żywych komórek 
+przy której każda z żywych komórek będzie żywa również w następnej rundzie.
+Listę y zawierającą wartości (od 1 do 8), czyli liczbę żywych komórek przy której każda z martwych komórek 
+narodzi się w następnej rundzie. 
+Metoda check_neighbours(x_cord, y_cord) sprawdza liczbę żywych komórek dla komórki o indeksach x_cord i y_cord
+zwracając tą liczbę.
+Metoda check() tworzy listę, początkowo pustą, komórek do zmiany w następnej rundzie.
+Iteruje po każdej komórce sprawdzając dla niej odpowiednie warunki oraz zwraca listę komórek do zmiany.
+Metoda change_space_state() wykonuje krok w symulacji. Może być wykorzystana do przeprowadzenia symulacji bez 
+reprezentacji graficznej.
+
+## GOA
+
+	# Argumenty:
+		1. parent: (tk.Frame)
+		2. r: (int)
+		3. c: (int)
+		4. x: (list)
+		5. y: (list)
+
+	# Atrybuty:
+		1. parent = parent
+		2. size_x = r
+		3. size_y = c
+		4. ntka = x
+		5. ntb = y
+		6. actual_space = (Space)
+		7. game_master = (GameMaster)
+		8. stats = (Stats)
+		9. grid_of_buttons = (list)
+		10. generate_next = (Wartość logiczna)
+		11. num_of_cycles = (int)
+		12. after_pause = (Wartość logiczna)
+
+	# Metody:
+		1. Initial()
+		2. build_grid()
+		3. switch_bg()
+		4. start_game()
+		5. off_buttons()
+		6. on_buttons()
+		7. pause_game()
+		8. reset_game()
+		9. rolls_cells()
+		10. show_current_alive()
+		11. show_until_alive()
+		12. grid_to_space()
+		13. space_to_grid()
+
+Klasa GOA zajmuje się graficzną przentacją oraz synchronizacją i komunikacją pomiędzy planszą graficzną,
+a wewnętrzną reprezentowaną poprzez instancje klasy Space.
+
+Klasa ta przyjmuje jako argument parent instancje klasy Frame (Tkinter).
+Liczbę naturalną r i c, przedstawiające liczbę wierszy i kolumn.
+Listy x i y przechowujące wartości co do konkretnych warunków samego automatu.
+GOA pamięta jako atrybut parent, size_x równy argumentowi r, size_y równy argumentowi c.
+Ntka będącym skrótem od (needed_to_keep_alive) i ntb (needed_to_be_born).
+Actual_space pamięta płaszczynę, jako argumenty podajemy size_x i size_y. 
+Game_master pamięta instancje klasy GameMaster, jako argumenty podajemy actual_space.
+Stats pamięta instancje klasy Stats, dla której argument to game_master.
+Atrybut grid_of_buttons jest graficznym odpowiednikiem klasy Space.
+Atrybut ten przechowuje przyciski, które mają odpowiednie indexy co jego wewnętrzne odpowiedniki, instancje Cella.
+Atrybut generate_next jest typowo techniczny, przechowuje wiedzę nt. tego czy chcemy generować następny krok.
+Atrybut after_pause jest również techniczny, pomaga ustalać kiedy mamy synchronizować płaszczyzny graficzne i wewnętrzne,
+np. po zmieniu stanu jednej z nich.
+
+Metoda Initial() tworzy cały interfejs jak i wywołuje metodę build_grid(), 
+które tworzy macierz przycisków reprezentujących pole gry. Metoda switch_bg() jest odpowiednikiem metody 
+change_state() klasy Cell. Zmienia "stan" graficznej komórki, zmieniając jej kolor.
+Metoda start_game() jest odpowiedzialna za obsługę cyklu automatu. po kliknięciu przycisku start 
+uruchamiana jest metoda off_buttons() wyłączająca nam graficzną reprezentacje komórek, czyli przyciski.
+Jeżeli są spełnione odpowiednie warunki, kontrolowane przez atrybuty num_of_cycles i after_pause 
+są aktualizowane płaszczyzny, wewnętrzna macierz jest aktualizowana na podstawie 
+zewnętrznego stanu metodą grid_to_space().
+Jeżeli przerwiemy działanie załączymy metodę on_buttons() włączającą na nowo graficzną macierz przycisków.
+Metoda rolls_cells() używa metody roll_alive(n) klasy Space, następnie synchronizuje stan wewnętrzny
+z zewnętrznym przedstawieniem metodą space_to_grid(). Metody show_current_alive() i show_until_alive()
+przedstawiają i zwracają wartości dostawane z klasy GOA_STATS.
+
+
+## GOA_STATS
+	
+	# Argumenty: 
+		1. goa = (GameOfLife)
+	
+	
+	# Atrybuty:
+		1. num_of_frames: (int)
+		2. num_of_alives: (int)
+	
+	# Metody:
+		1. current_alive()
+		2. percent_of_alive_current_cycle()
+		3. reset()
+
+Klasa GOA_STATS za argument przyjmuje klase GameOfLife.
+W atrybucie num_of_frames przechowuje informacje nt. liczby klatek, czyli liczby kroków w aktualnym cyklu.
+Za cykl przyjmuje rundę gry od momentu zaczęcia do kliknięcia przycisku reset.
+Atrybut num_of_alives przechowuje liczbe dotychczasowo żywych komórek w aktualnym cyklu.
+Metoda current_alive() zwraca liczbę aktualnie żywych komórek w kroku.
+Metoda percent_of_alive_current_cycle() zwraca procent żywych komórek od początku cyklu.
+Metoda reset zeruje atrybuty.
+
+
+
+
+
+
